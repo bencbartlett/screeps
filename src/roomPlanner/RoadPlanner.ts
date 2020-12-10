@@ -398,14 +398,14 @@ export class RoadPlanner {
 	/* Clean up leftover road coverage locations from remotes that aren't mined or old structures */
 	private cleanRoadCoverage() {
 		const colonyDestinations = this.colony.destinations.map(dest => `${dest.pos.roomName}:${dest.pos.x}:${dest.pos.y}`);
-		console.log(`Colony ${this.colony.print} has destinations of ${JSON.stringify(colonyDestinations)}`);
+		log.debug(`Colony ${this.colony.print} has destinations of ${JSON.stringify(colonyDestinations)}`);
 
 		for (const roadCoverageKey of Object.keys(this.memory.roadCoverages)) {
 			// console.log(`Colony ${this.colony.name} Road coverage of ${roadCoverageKey}`);
 			if (colonyDestinations.includes(roadCoverageKey)) {
 				// console.log(`Colony has destination of ${roadCoverageKey}`);
 			} else {
-				console.log(`Colony does not have destination of ${roadCoverageKey}, deleting.`);
+				log.warning(`Colony does not have destination of ${roadCoverageKey}, deleting.`);
 				delete this.memory.roadCoverages[roadCoverageKey];
 			}
 		}
