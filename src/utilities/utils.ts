@@ -353,3 +353,10 @@ export function rotatedMatrix<T>(matrix: T[][], clockwiseTurns: 0 | 1 | 2 | 3): 
 export function cyclicListPermutation<T>(list: T[], offset: number): T[] {
 	return list.slice(offset).concat(list.slice(0, offset));
 }
+
+export function isRoomAvailable(roomName: string) {
+	const roomStatus = Game.map.getRoomStatus(roomName);
+	const expiration = roomStatus.timestamp;
+	// TODO: cache result and only recheck after expiration
+	return roomStatus.status === 'normal';
+}

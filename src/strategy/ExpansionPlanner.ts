@@ -6,7 +6,7 @@ import {Autonomy, getAutonomyLevel, Mem} from '../memory/Memory';
 import {Pathing} from '../movement/Pathing';
 import {profile} from '../profiler/decorator';
 import {Cartographer} from '../utilities/Cartographer';
-import {maxBy} from '../utilities/utils';
+import {isRoomAvailable, maxBy} from '../utilities/utils';
 import {MAX_OWNED_ROOMS, SHARD3_MAX_OWNED_ROOMS} from '../~settings';
 import {MIN_EXPANSION_DISTANCE} from './ExpansionEvaluator';
 
@@ -123,7 +123,7 @@ export class ExpansionPlanner implements IExpansionPlanner {
 					}
 				}
 				// Update best choices
-				if (score > bestScore && Game.map.isRoomAvailable(roomName)) {
+				if (score > bestScore && isRoomAvailable(roomName)) {
 					bestScore = score;
 					bestRoom = roomName;
 				}

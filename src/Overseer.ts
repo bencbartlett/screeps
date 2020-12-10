@@ -31,7 +31,14 @@ import {
 	ROOMTYPE_SOURCEKEEPER
 } from './utilities/Cartographer';
 import {p} from './utilities/random';
-import {canClaimAnotherRoom, getAllRooms, hasJustSpawned, minBy, onPublicServer} from './utilities/utils';
+import {
+	canClaimAnotherRoom,
+	getAllRooms,
+	hasJustSpawned,
+	isRoomAvailable,
+	minBy,
+	onPublicServer
+} from './utilities/utils';
 import {MUON, MY_USERNAME, USE_TRY_CATCH} from './~settings';
 
 
@@ -378,7 +385,7 @@ export class Overseer implements IOverseer {
 			}
 			const neighboringRooms = _.values(Game.map.describeExits(roomName)) as string[];
 			const isReachableFromColony = _.any(neighboringRooms, r => colony.roomNames.includes(r));
-			return isReachableFromColony && Game.map.isRoomAvailable(roomName);
+			return isReachableFromColony && isRoomAvailable(roomName);
 		});
 	}
 
