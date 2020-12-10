@@ -314,7 +314,7 @@ export class Overseer implements IOverseer {
 		// Place nuke response directive if there is a nuke present in colony room
 		if (colony.room && colony.level >= DirectiveNukeResponse.requiredRCL) {
 			for (const nuke of colony.room.find(FIND_NUKES)) {
-				DirectiveNukeResponse.createIfNotPresent(nuke.pos, 'pos');
+				DirectiveNukeResponse.createIfNotPresent(colony.controller.pos, 'room');
 			}
 		}
 	}
