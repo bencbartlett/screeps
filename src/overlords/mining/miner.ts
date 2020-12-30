@@ -678,7 +678,7 @@ export class MiningOverlord extends Overlord {
 					break;
 				case ERR_NOT_OWNER:
 					if (Game.time % 20 == 0) {
-						log.alert(`${miner.print}: room is reserved by hostiles!`);
+						log.alert(`${miner.print}: room "${miner.room.name}" is reserved by hostiles!`);
 					}
 					break;
 				default:
