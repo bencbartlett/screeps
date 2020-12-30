@@ -114,7 +114,7 @@ Object.defineProperty(Room.prototype, 'sourceKeepers', {
 Object.defineProperty(Room.prototype, 'playerHostiles', {
 	get() {
 		if (!this._playerHostiles) {
-			this._playerHostiles = _.filter(this.hostiles, (creep: Creep) => creep.isHuman);
+			this._playerHostiles = _.filter(this.hostiles, (creep: Creep) => creep.isPlayer);
 		}
 		return this._playerHostiles;
 	},

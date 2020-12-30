@@ -7,7 +7,7 @@ interface Creep {
 	inRampart: boolean;
 	approxMoveSpeed: number;
 	bodypartCounts: { [bodypart in BodyPartConstant]: number };
-	isHuman: true;
+	isPlayer: true;
 }
 
 interface PowerCreep {
