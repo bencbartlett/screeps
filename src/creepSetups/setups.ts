@@ -89,10 +89,20 @@ export const Setups = {
 		}
 	},
 
-	filler: new CreepSetup(Roles.filler, {
-		pattern  : [CARRY, CARRY, MOVE],
-		sizeLimit: 1,
-	}),
+	fillers: {
+		first: new CreepSetup(Roles.filler, {
+			pattern  : [CARRY, CARRY, MOVE],
+			sizeLimit: 1,
+		}),
+		second: new CreepSetup(Roles.filler, {
+			pattern  : [CARRY, MOVE],
+			sizeLimit: 3,
+		}),
+		third: new CreepSetup(Roles.filler, {
+			pattern  : [CARRY, MOVE],
+			sizeLimit: 6,
+		}),
+	},
 
 	infestors: {
 

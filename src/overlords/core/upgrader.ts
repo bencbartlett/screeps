@@ -47,6 +47,8 @@ export class UpgradingOverlord extends Overlord {
 				const upgradersNeeded = Math.ceil(this.upgradeSite.upgradePowerNeeded / upgradePowerEach);
 				this.wishlist(upgradersNeeded, setup);
 			}
+		} else if (this.colony.level === 3) {
+			this.wishlist(1, Setups.upgraders.default);
 		}
 	}
 

@@ -1,3 +1,4 @@
+import {Colony} from '../../Colony';
 import {log} from '../../console/log';
 import {isResource} from '../../declarations/typeGuards';
 import {profile} from '../../profiler/decorator';
@@ -65,8 +66,15 @@ export class TaskRecharge extends Task {
 			// workers shouldn't harvest; let drones do it (disabling this check can destabilize early economy)
 			const canHarvest = creep.getActiveBodyparts(WORK) > 0 && creep.roleName != 'worker';
 			if (canHarvest) {
+
+				const colony: Colony | undefined = Overmind.colonies[creep.room.name];
+				let potentialSources: Source[] = creep.room.sources;
+				if (colony) {
+					potentialSources = colony.sources;
+				}
+
 				// Harvest from a source if there is no recharge target available
-				const availableSources = _.filter(creep.room.sources, function(source) {
+				const availableSources = _.filter(potentialSources, function(source) {
 					const filledSource = source.energy > 0 || source.ticksToRegeneration < 20;
 					// Only harvest from sources which aren't surrounded by creeps excluding yourself
 					const isSurrounded = source.pos.availableNeighbors(false).length == 0;

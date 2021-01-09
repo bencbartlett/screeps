@@ -1,3 +1,4 @@
+import {ColonyStage} from '../../Colony';
 import {CombatSetups, Roles} from '../../creepSetups/setups';
 import {DirectiveGuard} from '../../directives/defense/guard';
 import {DirectiveHaul} from '../../directives/resource/haul';
@@ -16,10 +17,14 @@ export class DefenseNPCOverlord extends Overlord {
 
 	guards: CombatZerg[];
 
-	static requiredRCL = 3;
+	static requiredRCL = 4;
+	invaderCore: boolean;
 
 	constructor(directive: DirectiveGuard, priority = OverlordPriority.outpostDefense.guard) {
 		super(directive, 'guard', priority);
+		if (directive.memory.invaderCore) {
+			this.invaderCore = true;
+		}
 		this.guards = this.combatZerg(Roles.guardMelee);
 	}
 
@@ -78,7 +83,10 @@ export class DefenseNPCOverlord extends Overlord {
 	}
 
 	init() {
-		const amount = this.room && (this.room.invaders.length > 0 || RoomIntel.isInvasionLikely(this.room)) ? 1 : 0;
+		let amount = 0;
+		if (this.invaderCore || !this.room || (this.room.invaders.length > 0 || RoomIntel.isInvasionLikely(this.room))) {
+			amount = 1;
+		}
 		this.wishlist(amount, CombatSetups.broodlings.default, {reassignIdle: true});
 	}
 

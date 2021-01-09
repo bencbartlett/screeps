@@ -100,6 +100,9 @@ function onGlobalReset(): void {
 	Mem.format();
 	OvermindConsole.init();
 	VersionMigration.run();
+	if (!Memory.stats.persistent) {
+		Memory.stats.persistent = {};
+	}
 	Memory.stats.persistent.lastGlobalReset = Game.time;
 	OvermindConsole.printUpdateMessage();
 	// Update the master ledger of valid checksums

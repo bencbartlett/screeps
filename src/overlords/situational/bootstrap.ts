@@ -1,3 +1,4 @@
+import {ColonyStage} from '../../Colony';
 import {bodyCost, CreepSetup, patternCost} from '../../creepSetups/CreepSetup';
 import {Roles, Setups} from '../../creepSetups/setups';
 import {DirectiveHarvest} from '../../directives/resource/harvest';
@@ -10,7 +11,7 @@ import {Zerg} from '../../zerg/Zerg';
 import {Overlord} from '../Overlord';
 
 /**
- * Bootstrapping overlord: spawns small miners and suppliers to recover from a catastrohpic colony crash
+ * Bootstrapping overlord: spawns small miners and suppliers to recover from a catastrophic colony crash
  */
 @profile
 export class BootstrappingOverlord extends Overlord {
@@ -30,20 +31,20 @@ export class BootstrappingOverlord extends Overlord {
 		this.fillers = this.zerg(Roles.filler);
 		// Calculate structures fillers can supply / withdraw from
 		this.supplyStructures = _.filter([...this.colony.spawns, ...this.colony.extensions],
-										 structure => structure.energy < structure.energyCapacity);
+			structure => structure.energy < structure.energyCapacity);
 		this.withdrawStructures = _.filter(_.compact([this.colony.storage!,
-													  this.colony.terminal!,
-													  this.colony.powerSpawn!,
-													  ...this.room.containers,
-													  ...this.room.links,
-													  ...this.room.towers,
-													  ...this.room.labs]), structure => structure.energy > 0);
+			this.colony.terminal!,
+			this.colony.powerSpawn!,
+			...this.room.containers,
+			...this.room.links,
+			...this.room.towers,
+			...this.room.labs]), structure => structure.energy > 0);
 	}
 
 	private spawnBootstrapMiners() {
 		// Isolate mining site overlords in the room
 		let miningSitesInRoom = _.filter(_.values(this.colony.miningSites),
-										 site => site.room == this.colony.room) as DirectiveHarvest[];
+			site => site.room == this.colony.room) as DirectiveHarvest[];
 		if (this.colony.spawns[0]) {
 			miningSitesInRoom = _.sortBy(miningSitesInRoom, site => site.pos.getRangeTo(this.colony.spawns[0]));
 		}
@@ -68,7 +69,7 @@ export class BootstrappingOverlord extends Overlord {
 		for (const overlord of miningOverlordsInRoom) {
 			const filteredMiners = this.lifetimeFilter(overlord.miners);
 			const miningPowerAssigned = _.sum(_.map(this.lifetimeFilter(overlord.miners),
-													creep => creep.getActiveBodyparts(WORK)));
+				creep => creep.getActiveBodyparts(WORK)));
 			if (miningPowerAssigned < overlord.miningPowerNeeded &&
 				filteredMiners.length < overlord.pos.availableNeighbors().length) {
 				if (this.colony.hatchery) {
@@ -84,17 +85,7 @@ export class BootstrappingOverlord extends Overlord {
 		}
 	}
 
-	init() {
-		// If you are super low on energy, spawn one miner, then a filler, then rest of the miners
-		const totalEnergyInRoom = _.sum(this.withdrawStructures, structure => structure.store.energy);
-		const costToMakeNormalMinerAndFiller = patternCost(Setups.drones.miners.emergency) * 3
-											   + patternCost(Setups.filler); // costs 1000
-		if (totalEnergyInRoom < costToMakeNormalMinerAndFiller) {
-			if (this.colony.getCreepsByRole(Roles.drone).length == 0) {
-				this.spawnBootstrapMiners();
-				return;
-			}
-		}
+	updateFillerWishlist() {
 		// Spawn fillers
 		if (this.colony.getCreepsByRole(Roles.queen).length == 0 && this.colony.hatchery) { // no queen
 			const transporter = _.first(this.colony.getZergByRole(Roles.transport));
@@ -103,16 +94,68 @@ export class BootstrappingOverlord extends Overlord {
 				transporter.reassign(this.colony.hatchery.overlord, Roles.queen);
 			} else {
 				// wish for a filler
-				this.wishlist(1, Setups.filler);
+				this.wishlist(1, Setups.fillers.first);
+				// if starting a big room, slowly ramp up the queens
+				if (this.colony.getCreepsByRole(Roles.drone).length > 1) {
+					this.wishlist(2, Setups.fillers.second);
+					// even bigger rooms need more queens
+					if (this.room.energyCapacityAvailable > 600
+						&& this.colony.getCreepsByRole(Roles.drone).length > 2) {
+						this.wishlist(3, Setups.fillers.third);
+					}
+				}
 			}
 		}
+	}
+
+	refresh() {
+		super.refresh();
+
+		// Spawn fillers
+		this.updateFillerWishlist();
+
+	}
+
+	init() {
+
 		// Then spawn the rest of the needed miners
-		this.spawnBootstrapMiners();
-		// const energyInStructures = _.sum(_.map(this.withdrawStructures, structure => structure.energy));
-		// const droppedEnergy = _.sum(this.room.droppedEnergy, drop => drop.amount);
-		// if (energyInStructures + droppedEnergy < BootstrappingOverlord.settings.spawnBootstrapMinerThreshold) {
-		// 	this.spawnBootstrapMiners();
-		// }
+		const energyInStructures = _.sum(_.map(this.withdrawStructures, structure => structure.energy));
+		const droppedEnergy = _.sum(this.room.droppedEnergy, drop => drop.amount);
+
+		// At early levels, spawn one miner, then a filler, then the rest of the miners
+		if (energyInStructures + droppedEnergy < 300 && this.colony.stage == ColonyStage.Larva) {
+			if (this.colony.getCreepsByRole(Roles.drone).length == 0) {
+				// Isolate mining site overlords in the room
+				let miningSites = _.filter(_.values(this.colony.miningSites),
+					(site: DirectiveHarvest) => site.room == this.colony.room) as DirectiveHarvest[];
+				if (this.colony.spawns[0]) {
+					miningSites = _.sortBy(miningSites, site => site.pos.getRangeTo(this.colony.spawns[0]));
+				}
+				const miningOverlords = _.map(miningSites, site => site.overlords.mine);
+				const firstOverlord = miningOverlords[0];
+				// first
+				if (this.colony.hatchery) {
+					let setup = Setups.drones.miners.default;
+					if (this.colony.controller.level > 2) {
+						setup = Setups.drones.miners.emergency;
+					}
+					const request: SpawnRequest = {
+						setup   : setup,
+						overlord: firstOverlord,
+						priority: 1,
+					};
+					this.colony.hatchery.enqueue(request);
+				}
+				return;
+			}
+		}
+
+		// Spawn fillers
+		this.updateFillerWishlist();
+
+		if (energyInStructures + droppedEnergy < BootstrappingOverlord.settings.spawnBootstrapMinerThreshold) {
+			this.spawnBootstrapMiners();
+		}
 	}
 
 	private supplyActions(filler: Zerg) {

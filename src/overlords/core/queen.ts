@@ -37,7 +37,7 @@ export class QueenOverlord extends Overlord {
 	}
 
 	init() {
-		const amount = 1;
+		const amount = this.hatchery.battery ? 2 : 3;
 		const prespawn = this.hatchery.spawns.length <= 1 ? 100 : DEFAULT_PRESPAWN;
 		this.wishlist(amount, this.queenSetup, {prespawn: prespawn});
 	}

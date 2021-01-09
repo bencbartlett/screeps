@@ -21,6 +21,7 @@ import {LogisticsNetwork} from './logistics/LogisticsNetwork';
 import {Autonomy, getAutonomyLevel, Mem} from './memory/Memory';
 import {Pathing} from './movement/Pathing';
 import {Overlord} from './overlords/Overlord';
+import {OverlordPriority} from './priorities/priorities_overlords';
 import {profile} from './profiler/decorator';
 import {CombatPlanner} from './strategy/CombatPlanner';
 import {
@@ -238,7 +239,8 @@ export class Overseer implements IOverseer {
 		// Doesn't apply to incubating colonies.
 		if (!colony.state.isIncubating) {
 			const noQueen = colony.getCreepsByRole(Roles.queen).length == 0;
-			if (noQueen && colony.hatchery && !colony.spawnGroup) {
+			const noDrone = colony.getCreepsByRole(Roles.drone).length == 0;
+			if ((noQueen || noDrone) && colony.hatchery && !colony.spawnGroup) {
 				const setup = colony.hatchery.overlord.queenSetup;
 				const energyToMakeQueen = bodyCost(setup.generateBody(colony.room.energyCapacityAvailable));
 				if (colony.room.energyAvailable < energyToMakeQueen || hasJustSpawned()) {
@@ -388,7 +390,10 @@ export class Overseer implements IOverseer {
 											 ? Memory.rooms[roomName][RMEM.SOURCES]!.length
 											 : 0);
 		const numRemotes = numSources - colony.room.sources.length;
-		if (numRemotes < Colony.settings.remoteSourcesByLevel[colony.level]) {
+		const spawnCapacityFree = colony.hatchery
+			&& colony.hatchery.memory.stats.uptime < 0.3
+			&& colony.hatchery.getWaitTimeForPriority(OverlordPriority.remoteRoom.mine) < 50;
+		if (numRemotes < Colony.settings.remoteSourcesByLevel[colony.level] || spawnCapacityFree) {
 
 			const possibleOutposts = this.computePossibleOutposts(colony);
 

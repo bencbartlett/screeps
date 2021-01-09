@@ -112,7 +112,7 @@ export class BunkerQueenOverlord extends Overlord {
 			}
 		}
 		// const amount = this.colony.spawns.length > 1 ? 2 : 1;
-		const amount = this.colony.room.energyCapacityAvailable > 2000 ? 2 : 1;
+		const amount = this.colony.room.energyCapacityAvailable > 1300 ? 2 : 1;
 		this.wishlist(amount, this.queenSetup);
 	}
 

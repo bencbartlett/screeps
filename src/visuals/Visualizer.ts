@@ -50,6 +50,14 @@ export class Visualizer {
 		return new RoomVisual(pos.roomName).animatedPosition(pos.x, pos.y, opts);
 	}
 
+	static annotate(text: string, pos: { x: number, y: number, roomName?: string }, roomName?: string) {
+		const location = {x: pos.x, y: pos.y, roomName: pos.roomName || roomName};
+		Visualizer.text(text, location, 0.6, {
+			color: 'white',
+			backgroundColor: 'black',
+		});
+	}
+
 	static drawStructureMap(structureMap: StructureMap): void {
 		if (!this.enabled) return;
 		const vis: { [roomName: string]: RoomVisual } = {};

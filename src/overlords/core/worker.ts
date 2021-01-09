@@ -159,9 +159,12 @@ export class WorkerOverlord extends Overlord {
 		if (this.colony.stage == ColonyStage.Larva) {
 			numWorkers = $.number(this, 'numWorkers', () => {
 				// At lower levels, try to saturate the energy throughput of the colony
-				const MAX_WORKERS = 10; // Maximum number of workers to spawn
+				const MAX_WORKERS = this.colony.upgradeSite.battery ? 10 : 15; // Maximum number of workers to spawn
 				const energyMinedPerTick = _.sum(_.map(this.colony.miningSites, function(site) {
 					const overlord = site.overlords.mine;
+					if (overlord.isSuspended || overlord.miners.length === 0) {
+						return 0;
+					}
 					const miningPowerAssigned = _.sum(overlord.miners, miner => miner.getActiveBodyparts(WORK));
 					const saturation = Math.min(miningPowerAssigned / overlord.miningPowerNeeded, 1);
 					return overlord.energyPerTick * saturation;
@@ -363,7 +366,17 @@ export class WorkerOverlord extends Overlord {
 			}
 		} else {
 			// Acquire more energy
-			const workerWithdrawLimit = this.colony.stage == ColonyStage.Larva ? 750 : 100;
+			let workerWithdrawLimit = 100;
+			if (this.colony.stage == ColonyStage.Larva) {
+				if (this.colony.upgradeSite.battery) {
+					workerWithdrawLimit = 800;
+					if (this.constructionSites.length > 1) {
+						workerWithdrawLimit = 300;
+					}
+				} else {
+					workerWithdrawLimit = 200;
+				}
+			}
 			worker.task = Tasks.recharge(workerWithdrawLimit);
 		}
 	}

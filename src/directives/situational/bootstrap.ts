@@ -1,4 +1,4 @@
-import {Colony} from '../../Colony';
+import {Colony, ColonyStage} from '../../Colony';
 import {log} from '../../console/log';
 import {Roles} from '../../creepSetups/setups';
 import {BootstrappingOverlord} from '../../overlords/situational/bootstrap';
@@ -57,8 +57,13 @@ export class DirectiveBootstrap extends Directive {
 			log.alert(`Colony ${this.room.print} has recovered from crash; removing bootstrap directive.`);
 			// Suicide any fillers so they don't get in the way
 			const overlord = this.overlords.bootstrap as BootstrappingOverlord;
+			const queenOverlord = this.colony.hatchery && this.colony.hatchery.overlord;
 			for (const filler of overlord.fillers) {
-				filler.suicide();
+				if (queenOverlord && this.colony.stage == ColonyStage.Larva) {
+					filler.reassign(queenOverlord, Roles.queen, false);
+				} else {
+					filler.suicide();
+				}
 			}
 			// Remove the directive
 			this.remove();
