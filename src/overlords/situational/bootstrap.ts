@@ -28,16 +28,15 @@ export class BootstrappingOverlord extends Overlord {
 	constructor(directive: DirectiveBootstrap, priority = OverlordPriority.emergency.bootstrap) {
 		super(directive, 'bootstrap', priority);
 		this.fillers = this.zerg(Roles.filler);
-		// Calculate structures fillers can supply / withdraw from
-		this.supplyStructures = _.filter([...this.colony.spawns, ...this.colony.extensions],
-										 structure => structure.energy < structure.energyCapacity);
-		this.withdrawStructures = _.filter(_.compact([this.colony.storage!,
-													  this.colony.terminal!,
-													  this.colony.powerSpawn!,
-													  ...this.room.containers,
-													  ...this.room.links,
-													  ...this.room.towers,
-													  ...this.room.labs]), structure => structure.energy > 0);
+		// Pick up all possible structures first
+		this.supplyStructures = [...this.colony.spawns, ...this.colony.extensions];
+		this.withdrawStructures = _.compact([this.colony.storage!,
+											this.colony.terminal!,
+											this.colony.powerSpawn!,
+											...this.room.containers,
+											...this.room.links,
+											...this.room.towers,
+											...this.room.labs]);
 	}
 
 	private spawnBootstrapMiners() {
@@ -142,8 +141,15 @@ export class BootstrappingOverlord extends Overlord {
 	}
 
 	run() {
+		let toUpdate = true;
 		for (const filler of this.fillers) {
 			if (filler.isIdle) {
+				if (toUpdate) {
+					toUpdate = false
+					// Filter valid structures fillers can supply / withdraw from
+					this.supplyStructures = _.filter(this.supplyStructures, structure => structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+					this.withdrawStructures = _.filter(this.withdrawStructures, structure => structure.store.energy > 0);
+				}
 				this.handleFiller(filler);
 			}
 			filler.run();
